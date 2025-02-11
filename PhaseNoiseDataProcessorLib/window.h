@@ -5,53 +5,52 @@
 
 #include <vector>
 
-namespace Window
+//! Abstract class for a sampling window of given size, which defines the shape and resolution bandwidth scaling factor
+class Window
 {
-	class Window
+protected:
+
+	size_t size = 0; //!< Size of the window in samples
+	double rbw_factor; //!< Resolution bandwidth scaling factor (equal to 1.0 for a rectangular window)
+	std::vector<double> data; //!< Data points that define the shape of of the window (all 1.0s for a rectangular window)
+
+	virtual double rbwFactor() = 0; //!< Calculate and return the resolution bandwidth scaling factor
+	virtual void generate() = 0; //!< Generate the data points
+
+public:
+
+	Window(size_t size)
 	{
-	protected:
+		this->size = size;
+		data.resize(size);
+		this->rbw_factor = rbwFactor();
+		generate();
+	}
+};
 
-		size_t size = 0;
-		double rbw_factor;
-		std::vector<double> data;
+//! Flat top window for minimal scalloping loss
+class FlatTop : Window
+{
+protected:
 
-		virtual double rbwFactor() = 0;
-		virtual void generate() = 0;
+	double rbwFactor() override { return 3.8193596; };
 
-	public:
-
-		Window(size_t size)
-		{
-			this->size = size;
-			data.resize(size);
-			this->rbw_factor = rbwFactor();
-			generate();
-		}
-	};
-
-	class FlatTop : Window
+	void generate()
 	{
-	protected:
+		double a0 = 0.21557895;
+		double a1 = 0.41663158;
+		double a2 = 0.277263158;
+		double a3 = 0.083578947;
+		double a4 = 0.006947368;
+		double fac = M_PI / size;
 
-		double rbwFactor() override { return 3.8193596; };
-
-		void generate()
+		for (int i = 0; i < data.size(); i++)
 		{
-			double a0 = 0.21557895;
-			double a1 = 0.41663158;
-			double a2 = 0.277263158;
-			double a3 = 0.083578947;
-			double a4 = 0.006947368;
-			double fac = M_PI / size;
-
-			for (int i = 0; i < data.size(); i++)
-			{
-				data[i] = a0 - (a1 * cos(2 * i * fac)) + (a2 * cos(4 * i * fac)) - (a3 * cos(6 * i * fac)) + (a4 * cos(8 * i * fac));
-			}
+			data[i] = a0 - (a1 * cos(2 * i * fac)) + (a2 * cos(4 * i * fac)) - (a3 * cos(6 * i * fac)) + (a4 * cos(8 * i * fac));
 		}
+	}
 
-	public:
+public:
 
-		FlatTop(size_t size) : Window(size) {};
-	};
-}
+	FlatTop(size_t size) : Window(size) {};
+};

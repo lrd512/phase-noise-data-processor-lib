@@ -140,20 +140,20 @@ void pfft(double* x_re, double* x_im, double* out_re, double* out_im, uint32_t k
 	else pfft(x_re, x_im, out_re, out_im, k_num, g_data_size, 1);
 }
 
-void pfft_dual_real(double* x_re, double* x_im, double* out_re, double* out_im, uint32_t k_num, uint32_t data_size, uint32_t div)
+void pfft_dual_real(double* x_re1, double* x_re2, double* out_re, double* out_im, uint32_t k_num, uint32_t data_size, uint32_t div)
 {
 	uint32_t half_data_size = data_size >> 1;
 	uint32_t div_2 = div << 1;
 
 	if (k_num > (half_data_size >> 2))
 	{
-		fft(x_re, x_im, out_re, out_im, half_data_size, div_2);
-		fft(x_re + div, x_im + div, out_re + half_data_size, out_im + half_data_size, half_data_size, div_2);
+		fft(x_re1, x_re2, out_re, out_im, half_data_size, div_2);
+		fft(x_re1 + div, x_re2 + div, out_re + half_data_size, out_im + half_data_size, half_data_size, div_2);
 	}
 	else
 	{
-		pfft_dual_real(x_re, x_im, out_re, out_im, k_num, half_data_size, div_2);
-		pfft_dual_real(x_re + div, x_im + div, out_re + half_data_size, out_im + half_data_size, k_num, half_data_size, div_2);
+		pfft_dual_real(x_re1, x_re2, out_re, out_im, k_num, half_data_size, div_2);
+		pfft_dual_real(x_re1 + div, x_re2 + div, out_re + half_data_size, out_im + half_data_size, k_num, half_data_size, div_2);
 	}
 
 	double p1_re, p1_im, q1_re, q1_im, p2_re, p2_im, q2_re, q2_im;
@@ -194,10 +194,10 @@ void pfft_dual_real(double* x_re, double* x_im, double* out_re, double* out_im, 
 		k4--;
 	}
 }
-void pfft_dual_real(double* x_re, double* x_im, double* out_re, double* out_im, uint32_t k_num)
+void pfft_dual_real(double* x_re1, double* x_re2, double* out_re, double* out_im, uint32_t k_num)
 {
-	if (k_num >= (g_data_size >> 1)) fft(x_re, x_im, out_re, out_im, g_data_size, 1);
-	else pfft_dual_real(x_re, x_im, out_re, out_im, k_num, g_data_size, 1);
+	if (k_num >= (g_data_size >> 1)) fft(x_re1, x_re2, out_re, out_im, g_data_size, 1);
+	else pfft_dual_real(x_re1, x_re2, out_re, out_im, k_num, g_data_size, 1);
 }
 
 void rfft(double* x_re, double* out_re, double* out_im, uint32_t data_size, uint32_t div)

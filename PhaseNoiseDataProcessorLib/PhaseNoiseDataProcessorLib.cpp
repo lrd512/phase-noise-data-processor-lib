@@ -2,7 +2,7 @@
 
 namespace PhaseNoiseDataProcessor
 {
-	std::vector<double> data_set[2];
+	std::vector<double> meas_buffer[2];
 	std::vector<double> smpl_buffer[2];
 	std::vector<double> fft_re_buffer;
 	std::vector<double> fft_im_buffer;
@@ -17,14 +17,14 @@ namespace PhaseNoiseDataProcessor
 
 	Config config;
 
-	void convert_samples(int set_num, const void* data_bytes)
+	void convert_samples(int channel, const void* data_bytes)
 	{
 		double sum = 0.0;
 		uint16_t* data_2bytes = (uint16_t*)data_bytes;
 
 		for (int i = 0; i < config.data_size; i++)
 		{
-			data_set[set_num].at(i) = (((double)data_2bytes[i] + INT16_MIN) / -INT16_MIN) * config.conversion_fac;
+			meas_buffer[channel].at(i) = (((double)data_2bytes[i] + INT16_MIN) / -INT16_MIN) * config.conversion_fac;
 		}
 	}
 
@@ -137,7 +137,7 @@ namespace PhaseNoiseDataProcessor
 	void retrieve_samples(uint32_t set_num, uint32_t smpl_rate_div)
 	{
 		uint32_t offset = smpl_buffer[0].size() * set_num * smpl_rate_div;
-		double* data_buffer = data_set[0].data() + offset;
+		double* data_buffer = meas_buffer[0].data() + offset;
 		uint32_t pos = 0;
 
 		for (int i = 0; i < smpl_buffer[0].size(); i++)
@@ -149,7 +149,7 @@ namespace PhaseNoiseDataProcessor
 		if (config.cross_corr)
 		{
 			offset = smpl_buffer[1].size() * set_num * smpl_rate_div;
-			data_buffer = data_set[1].data() + offset;
+			data_buffer = meas_buffer[1].data() + offset;
 			pos = 0;
 
 			for (int i = 0; i < smpl_buffer[1].size(); i++)
@@ -169,21 +169,21 @@ namespace PhaseNoiseDataProcessor
 	void overwrite_samples(uint32_t packet_num)
 	{
 		uint32_t offset = smpl_buffer[0].size() * packet_num;
-		double* data_buffer = data_set[0].data() + offset;
+		double* data_buffer = meas_buffer[0].data() + offset;
 		for (int i = 0; i < smpl_buffer[0].size(); i++) data_buffer[i] = smpl_buffer[0][i];
 
 		if (config.cross_corr)
 		{
 			offset = smpl_buffer[1].size() * packet_num;
-			data_buffer = data_set[1].data() + offset;
+			data_buffer = meas_buffer[1].data() + offset;
 			for (int i = 0; i < smpl_buffer[1].size(); i++) data_buffer[i] = smpl_buffer[1][i];
 		}
 	}
 
-	void clear_data_set()
+	void clear_meas_buffer()
 	{
-		for (int i = 0; i < data_set[0].size(); i++) data_set[0].at(i) = 0.0;
-		for (int i = 0; i < data_set[1].size(); i++) data_set[1].at(i) = 0.0;
+		for (int i = 0; i < meas_buffer[0].size(); i++) meas_buffer[0].at(i) = 0.0;
+		for (int i = 0; i < meas_buffer[1].size(); i++) meas_buffer[1].at(i) = 0.0;
 	}
 
 	void clear_output_buffer()
@@ -201,8 +201,8 @@ namespace PhaseNoiseDataProcessor
 			cout << "Measurement " << to_string(m + 1) << ": ";
 
 			if (!read_meas_from_file(SMPL_FILENAME, m)) cout << "Error: could not open input file";
-			if (config.cross_corr) push_data_fixed_window_size(data_set[0].data(), data_set[1].data());
-			else push_data_fixed_window_size(data_set[0].data(), nullptr);
+			if (config.cross_corr) push_data_fixed_window_size(meas_buffer[0].data(), meas_buffer[1].data());
+			else push_data_fixed_window_size(meas_buffer[0].data(), nullptr);
 
 			cout << "done\n\r";
 		}
@@ -245,8 +245,8 @@ namespace PhaseNoiseDataProcessor
 
 	void process_fixed_smpl_rate()
 	{
-		data_set[0].resize(config.data_size);
-		if (config.cross_corr) data_set[1].resize(config.data_size);
+		meas_buffer[0].resize(config.data_size);
+		if (config.cross_corr) meas_buffer[1].resize(config.data_size);
 
 		start_fixed_smpl_rate();
 
@@ -255,8 +255,8 @@ namespace PhaseNoiseDataProcessor
 			cout << "Measurement " << to_string(m + 1) << ": ";
 
 			if (!read_meas_from_file(SMPL_FILENAME, m)) cout << "Error: could not open input file";
-			if (config.cross_corr) push_data_fixed_smpl_rate(data_set[0].data(), data_set[1].data());
-			else push_data_fixed_smpl_rate(data_set[0].data(), nullptr);
+			if (config.cross_corr) push_data_fixed_smpl_rate(meas_buffer[0].data(), meas_buffer[1].data());
+			else push_data_fixed_smpl_rate(meas_buffer[0].data(), nullptr);
 
 			cout << "done\n\r";
 		}
@@ -273,8 +273,8 @@ namespace PhaseNoiseDataProcessor
 	{
 		band_data = BandData(config.num_bands, config.band_mult, config.data_size, config.packet_size, config.band_shift, false);
 
-		data_set[0].resize(config.data_size);
-		if (config.cross_corr) data_set[1].resize(config.data_size);
+		meas_buffer[0].resize(config.data_size);
+		if (config.cross_corr) meas_buffer[1].resize(config.data_size);
 		smpl_buffer[0].resize(config.packet_size);
 		if (config.cross_corr) smpl_buffer[1].resize(config.packet_size);
 		fft_re_buffer.resize(config.packet_size);
@@ -294,8 +294,8 @@ namespace PhaseNoiseDataProcessor
 
 	bool push_data_fixed_window_size(double* data_0, double* data_1)
 	{
-		for (int i = 0; i < data_set[0].size(); i++) data_set[0].at(i) = data_0[i];
-		for (int i = 0; i < data_set[1].size(); i++) data_set[1].at(i) = data_1[i];
+		for (int i = 0; i < meas_buffer[0].size(); i++) meas_buffer[0].at(i) = data_0[i];
+		for (int i = 0; i < meas_buffer[1].size(); i++) meas_buffer[1].at(i) = data_1[i];
 
 		for (int b = (band_data.num_bands - 1); b >= 0; b--)
 		{
@@ -379,8 +379,8 @@ namespace PhaseNoiseDataProcessor
 
 	void stop()
 	{
-		data_set[0].resize(0);
-		if (config.cross_corr) data_set[1].resize(0);
+		meas_buffer[0].resize(0);
+		if (config.cross_corr) meas_buffer[1].resize(0);
 		smpl_buffer[0].resize(0);
 		if (config.cross_corr) smpl_buffer[1].resize(0);
 		fft_re_buffer.resize(0);

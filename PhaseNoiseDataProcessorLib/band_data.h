@@ -2,37 +2,39 @@
 
 #include <vector>
 
-//Data structure for a single phase noise measurement band
+//! Data structure for a single phase noise measurement band
 class Band
 {
 public:
 
-	uint32_t num_sets = 0; 
-	uint16_t smpl_rate_div = 0;
-	uint32_t output_start_pos = 0;
-	uint32_t window_size = 0;
-	uint32_t dft_size = 0;
-	uint32_t dft_start_pos = 0;
-	uint32_t dft_end_pos = 0;
+	uint32_t num_sets = 0; //!< Number of separate data sets that a single measurement is split into (equal to the number of correlation/autocorrelations performed)
+	uint16_t smpl_rate_div = 0; //!< Ratio of under-sampling relative to the sampling rate of the captured data
+	uint32_t output_start_pos = 0; //!< Start position in the output data buffers of where output data for this band should be written
+	uint32_t window_size = 0; //!< The sampling window size for a single data set
+	uint32_t dft_size = 0; //!< Size of the output of the Fourier transform (only positive frequencies)
+	uint32_t dft_start_pos = 0; //!< Start position of useful output data from Fourier transforms calculated for this band
+	uint32_t dft_end_pos = 0; //!< End position of useful output data from Fourier transforms calculated for this band
 };
 
 
-//Generates data for a set of phase noise measurement bands based on the supplied parameters
+//! Generates data for a set of phase noise measurement bands based on the supplied parameters
 class BandData
 {
 public:
 
-	uint32_t smpl_data_size = 0; //number of samples per channel in a single measurement data capture (must be a power of 2)
-	uint16_t band_mult = 1; //frequency multiplier for subsequent bands (must be a power of 2)
-	uint16_t num_bands = 0; //number of frequency bands to use
-	uint32_t min_window_size = 0; //FFT window size to use for the highest frequency band (must be a power of 2)
-	uint16_t band_shift = 0; //shifts each band down in multiples of band_mult by the specified number (prioritises more correlations over smaller RBW for higher frequencies)
-	bool fixed_smpl_rate = true; //true if each band uses a fixed sample rate (more accurate), false if each band uses a fixed window size (faster)
+	uint32_t smpl_data_size = 0; //!< Number of samples per channel in a single measurement data capture (must be a power of 2)
+	uint16_t band_mult = 1; //!< Frequency multiplier for subsequent bands (must be a power of 2)
+	uint16_t num_bands = 0; //!< Number of frequency bands to use
+	uint32_t min_window_size = 0; //!< FFT window size to use for the highest frequency band (must be a power of 2)
+	uint16_t band_shift = 0; //!< Shifts each band down in multiples of band_mult by the specified number (prioritises more correlations over smaller RBW for higher frequencies)
+	bool fixed_smpl_rate = true; //!< True if each band uses a fixed sample rate (more accurate), false if each band uses a fixed window size (faster)
 
-	uint32_t output_size = 0; //number of output data points that will be generated based on current settings
-	std::vector<Band> bands; //vector array of band data structures
+	uint32_t output_size = 0; //!< Number of output data points that will be generated based on current settings
+	std::vector<Band> bands; //!< Vector array of band data structures
 
 	BandData() {};
+
+	//! Instatiates the BandData object and generates the Bands
 	BandData(uint16_t num_bands, uint16_t band_mult, uint32_t smpl_data_size, uint32_t min_window_size, uint16_t band_shift, bool fixed_smpl_rate)
 	{
 		this->smpl_data_size = smpl_data_size;

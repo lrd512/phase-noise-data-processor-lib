@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <vector>
 
-//Generates a lookup table of precalculated sine/cosine values
+//! Generates a lookup table of precalculated sine/cosine values
 class TrigTable
 {
 private:
@@ -30,13 +30,14 @@ public:
 		sin_table.resize(1);
 		sin_table[0] = 0.0;
 	}
-
+	//! Look up sine value at the given position
 	double sin_lookup(uint64_t pos)
 	{
 		uint32_t pos_m = (uint32_t)(pos & mod_mask);
 		return sin_table[pos_m];
 	}
 
+	//! Look up cosine value at the given position
 	double cos_lookup(uint64_t pos)
 	{
 		uint32_t pos_m = (uint32_t)((pos + cos_shift) & mod_mask);

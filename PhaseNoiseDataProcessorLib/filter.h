@@ -4,7 +4,7 @@
 #include <cmath>
 #include <stdint.h>
 
-//Digital biquadratic filter
+//! Digital biquadratic filter
 class BiquadFilter
 {
     protected:
@@ -20,11 +20,17 @@ class BiquadFilter
     public:
 
         BiquadFilter() {};
+
+		//! Instatiate the biquad filter and generate coefficients for the selected cutoff division and Q factor
         BiquadFilter(int cutoff_div, double q)
         {
             generateCoefficients(cutoff_div, q);
         }
 
+		//! Generate coefficients for the selected cutoff division and Q factor
+		
+		//! cutoff_div sets the cutoff frequency of the filter as an integer division relative to the sampling frequency.
+		//! q sets the quality factor of the resonant peak.
         void generateCoefficients(int cutoff_div, double q)
         {
 			double k_wa = 1.0 / tanf(M_PI / cutoff_div);
@@ -40,6 +46,7 @@ class BiquadFilter
             feedback_coeff[1] = -(k_wa_sqr - (k_wa / q) + 1.0) * fac;
         }
 		
+		//! Passe the next sample into the filter and return the corresponding output sample
 		double pass(double input)
 		{
 			input_buffer[2] = input_buffer[1];
@@ -54,6 +61,7 @@ class BiquadFilter
 			return output();
 		}
 		
+		//! Reset all of the internal sample buffers of the filter to 0
 		void reset()
 		{
 			input_buffer[2] = 0;
@@ -66,10 +74,13 @@ class BiquadFilter
 			output_value = 0;
 		}
 		
+		//! Return the current output sample
 		double output() { return output_value; };
 };
 
-//6th order Butterworth digital filter
+//! 6th order Butterworth digital anti-aliasing filter
+
+//! This filter is used to prepare data for under-sampling with reduced aliasing artefacts.
 class AntiAliasingFilter
 {
     protected:
@@ -85,6 +96,7 @@ class AntiAliasingFilter
 
     public:
         
+		//! Instatiate the anti-aliasing filter and generate coefficients for the selected cutoff division
         AntiAliasingFilter(int cutoff_div)
         {
             filt1.generateCoefficients(cutoff_div, Q1);
@@ -92,12 +104,14 @@ class AntiAliasingFilter
             filt3.generateCoefficients(cutoff_div, Q3);
         }
 
+		//! Passe the next sample into the filter and return the corresponding output sample
         float pass(double input)
         {
             output_value = filt3.pass(filt2.pass(filt1.pass(input)));
             return output();
         }
 		
+		//! Reset all of the internal sample buffers of the filter to 0
 		void reset()
 		{
 			filt1.reset();
@@ -107,5 +121,6 @@ class AntiAliasingFilter
 			output_value = 0;
 		}
 
+		//! Return the current output sample
 		double output() { return output_value; };
 };
