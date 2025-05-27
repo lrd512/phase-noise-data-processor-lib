@@ -17,7 +17,7 @@
 using namespace std;
 
 #define MAX_DATA_SIZE 268435456
-#define MAX_PACKET_SIZE 268435456
+#define MAX_WINDOW_SIZE 268435456
 #define MAX_MEAS 65536
 #define SMPL_FILENAME "samples.bin"
 #define OUTPUT_FILENAME "output.csv"
@@ -42,8 +42,8 @@ namespace PhaseNoiseDataProcessor
 		bool cross_corr = true; //!< True for cross correlation, false for single channel
 		double smpl_rate = 524288.0; //!< Sample rate of the captured data
 		uint32_t num_meas = 1; //!< Number of measurements to process
-		uint32_t data_size = 4194304; //!< Number of samples captured per channel for a single measurement
-		uint32_t packet_size = 524288; //!< Minimum size of the FFT window
+		uint32_t data_size = 4194304; //!< Number of samples captured per channel for a single measurement (must be a power of 2)
+		uint32_t min_window_size = 524288; //!< Minimum size of the FFT window (must be a power of 2)
 		uint32_t num_bands = 1; //!< Number of frequency bands to use
 		uint32_t band_mult = 8; //!< Frequency multiplier for subsequent bands (must be a power of 2)
 		uint32_t band_shift = 2; //!< Shifts each band down in multiples of band_mult by the specified number (prioritises more correlations over smaller RBW for higher frequencies)
@@ -146,5 +146,3 @@ namespace PhaseNoiseDataProcessor
 	//! Stop real time processing and release data buffers
 	void stop();
 }
-
-

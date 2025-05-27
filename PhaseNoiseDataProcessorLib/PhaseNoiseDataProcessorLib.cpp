@@ -221,7 +221,7 @@ namespace PhaseNoiseDataProcessor
 		config.smpl_rate = smpl_rate;
 		config.num_meas = num_meas;
 		config.data_size = data_size;
-		config.packet_size = min_window_size;
+		config.min_window_size = min_window_size;
 		config.num_bands = num_bands;
 		config.band_mult = band_mult;
 		config.band_shift = band_shift;
@@ -271,21 +271,21 @@ namespace PhaseNoiseDataProcessor
 
 	void start_fixed_window_size()
 	{
-		band_data = BandData(config.num_bands, config.band_mult, config.data_size, config.packet_size, config.band_shift, false);
+		band_data = BandData(config.num_bands, config.band_mult, config.data_size, config.min_window_size, config.band_shift, false);
 
 		meas_buffer[0].resize(config.data_size);
 		if (config.cross_corr) meas_buffer[1].resize(config.data_size);
-		smpl_buffer[0].resize(config.packet_size);
-		if (config.cross_corr) smpl_buffer[1].resize(config.packet_size);
-		fft_re_buffer.resize(config.packet_size);
-		fft_im_buffer.resize(config.packet_size);
+		smpl_buffer[0].resize(config.min_window_size);
+		if (config.cross_corr) smpl_buffer[1].resize(config.min_window_size);
+		fft_re_buffer.resize(config.min_window_size);
+		fft_im_buffer.resize(config.min_window_size);
 		output_re_buffer.resize(band_data.output_size);
 		if (config.cross_corr) output_im_buffer.resize(band_data.output_size);
 
 		output_x_buffer.resize(band_data.output_size);
 		output_y_buffer.resize(band_data.output_size);
 
-		set_data_size(config.packet_size);
+		set_data_size(config.min_window_size);
 
 		clear_output_buffer();
 
@@ -332,7 +332,7 @@ namespace PhaseNoiseDataProcessor
 
 	void start_fixed_smpl_rate()
 	{
-		band_data = BandData(config.num_bands, config.band_mult, config.data_size, config.packet_size, config.band_shift, true);
+		band_data = BandData(config.num_bands, config.band_mult, config.data_size, config.min_window_size, config.band_shift, true);
 
 		fft_re_buffer.resize(config.data_size);
 		fft_im_buffer.resize(config.data_size);
